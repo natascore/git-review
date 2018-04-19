@@ -1,0 +1,24 @@
+{
+  "name": "git-review",
+  "version": "0.0.1",
+  "description": "Git Reviews made easy",
+  "main": "index.js",
+  "repository": "git@github.com:natascore/git-review.git",
+  "author": "Daniel Paschke <paschdan@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "commitizen": "^2.9.6",
+    "cz-customizable": "^5.2.0"
+  },
+  "scripts": {
+    "commit": "git-cz"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-customizable"
+    },
+    "cz-customizable": {
+      "config": ".cz-config.js"
+    }
+  }
+}
