@@ -13,8 +13,11 @@ func sayHello(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(message))
 }
 func main() {
-	http.HandleFunc("/", sayHello)
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/", sayHello)
+
 	log.Printf("About to listen on :8080: Go to http://127.0.0.1:8080/")
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", mux)
 	log.Fatal(err)
 }
