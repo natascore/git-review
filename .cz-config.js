@@ -28,7 +28,7 @@ module.exports = {
     ]
   },
 
-  allowCustomScopes: false,
+  allowCustomScopes: true,
   allowBreakingChanges: ['feat']
 
 };
