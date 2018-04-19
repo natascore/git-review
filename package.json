@@ -8,7 +8,9 @@
   "license": "MIT",
   "devDependencies": {
     "commitizen": "^2.9.6",
-    "cz-customizable": "^5.2.0"
+    "cz-customizable": "^5.2.0",
+    "cz-customizable-ghooks": "^1.5.0",
+    "ghooks": "^2.0.3"
   },
   "scripts": {
     "commit": "git-cz"
@@ -19,6 +21,9 @@
     },
     "cz-customizable": {
       "config": ".cz-config.js"
+    },
+    "ghooks": {
+      "commit-msg": "cz-customizable-ghooks $2"
     }
   }
 }
