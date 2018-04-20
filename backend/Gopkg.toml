@@ -1,0 +1,7 @@
+[[constraint]]
+  branch = "master"
+  name = "github.com/graph-gophers/graphql-go"
+
+[prune]
+  non-go = true
+  unused-packages = true
