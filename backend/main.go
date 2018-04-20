@@ -10,6 +10,7 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
+	mux.Handle("/graphql", handler.GraphQLHandler{})
 	mux.Handle("/", handler.Playground{})
 
 	log.Printf("About to listen on :8080: Go to http://127.0.0.1:8080/")
