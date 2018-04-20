@@ -29,6 +29,7 @@ module.exports = {
   },
 
   allowCustomScopes: true,
-  allowBreakingChanges: ['feat']
+  allowBreakingChanges: ['feat'],
+  appendBranchNameToCommitMessage: false,
 
 };
