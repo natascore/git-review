@@ -18,8 +18,6 @@ func getSchema(path string) (string, error) {
 	return string(b), nil
 }
 
-// HANDLER CODE
-
 // The GraphQLHandler handler handles GraphQL API requests over HTTP.
 type GraphQLHandler struct {
 }
