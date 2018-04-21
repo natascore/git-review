@@ -4,4 +4,9 @@ schema {
 
 type Query {
   helloWorld(): String!
+  getHistory(): [Commit]
+}
+
+type Commit {
+  hash: String!
 }
