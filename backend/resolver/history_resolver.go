@@ -1,39 +1,42 @@
 package resolver
 
-type commitResolver struct {
-	commit Commit
-}
+import (
+	helper "github.com/natascore/git-review/backend/helper"
+	git "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
+)
 
-// Commit from Git
-type Commit struct {
-	Hash string
+type commitResolver struct {
+	commit *object.Commit
 }
 
 // GetHistory QueryResolver for GetHistory()
 func (r *Resolver) GetHistory() *[]*commitResolver {
 
-	var testCommit = Commit{
-		Hash: "First Commit",
-	}
+	repo, err := git.PlainOpen("../")
+	helper.CheckIfError(err)
 
-	var testCommit1 = Commit{
-		Hash: "Second Commit",
-	}
+	// ... retrieving the HEAD reference
+	ref, err := repo.Head()
+	helper.CheckIfError(err)
 
-	var commitCollection = []Commit{
-		testCommit, testCommit1,
-	}
+	// ... retrieves the commit history
+	cIter, err := repo.Log(&git.LogOptions{From: ref.Hash()})
+	helper.CheckIfError(err)
 
 	var l []*commitResolver
-	for _, commit := range commitCollection {
-		l = append(l, &commitResolver{commit})
-	}
 
+	err = cIter.ForEach(func(c *object.Commit) error {
+		l = append(l, &commitResolver{c})
+		return nil
+	})
+	helper.CheckIfError(err)
 	return &l
 
 }
 
 // commitResolver resolves Commits
 func (r *commitResolver) Hash() string {
-	return r.commit.Hash
+	return r.commit.Hash.String()
+}
 }
