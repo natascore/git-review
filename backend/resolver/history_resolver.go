@@ -39,4 +39,7 @@ func (r *Resolver) GetHistory() *[]*commitResolver {
 func (r *commitResolver) Hash() string {
 	return r.commit.Hash.String()
 }
+
+func (r *commitResolver) Message() string {
+	return r.commit.Message
 }

@@ -9,4 +9,5 @@ type Query {
 
 type Commit {
   hash: String!
+  message: String!
 }
