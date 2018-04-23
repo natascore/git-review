@@ -58,6 +58,10 @@ func (r *commitResolver) Author() *signatureResolver {
 	return &signatureResolver{r.commit.Author}
 }
 
+func (r *commitResolver) Committer() *signatureResolver {
+	return &signatureResolver{r.commit.Committer}
+}
+
 func (r *signatureResolver) Name() string {
 	return r.signature.Name
 }

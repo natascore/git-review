@@ -12,6 +12,7 @@ type Commit {
   message: String!
   date: String!
   author: Signature!
+  committer: Signature!
 }
 
 type Signature {
