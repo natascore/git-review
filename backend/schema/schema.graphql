@@ -11,4 +11,10 @@ type Commit {
   hash: String!
   message: String!
   date: String!
+  author: Signature!
+}
+
+type Signature {
+  name: String!
+  email: String!
 }
