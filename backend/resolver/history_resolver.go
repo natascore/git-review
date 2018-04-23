@@ -12,6 +12,10 @@ type commitResolver struct {
 	commit *object.Commit
 }
 
+type signatureResolver struct {
+	signature object.Signature
+}
+
 // GetHistory QueryResolver for GetHistory()
 func (r *Resolver) GetHistory() *[]*commitResolver {
 
@@ -48,4 +52,16 @@ func (r *commitResolver) Message() string {
 
 func (r *commitResolver) Date() string {
 	return r.commit.Author.When.Format(time.RFC3339)
+}
+
+func (r *commitResolver) Author() *signatureResolver {
+	return &signatureResolver{r.commit.Author}
+}
+
+func (r *signatureResolver) Name() string {
+	return r.signature.Name
+}
+
+func (r *signatureResolver) Email() string {
+	return r.signature.Email
 }
