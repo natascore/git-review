@@ -1,6 +1,8 @@
 package resolver
 
 import (
+	"time"
+
 	helper "github.com/natascore/git-review/backend/helper"
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
@@ -42,4 +44,8 @@ func (r *commitResolver) Hash() string {
 
 func (r *commitResolver) Message() string {
 	return r.commit.Message
+}
+
+func (r *commitResolver) Date() string {
+	return r.commit.Author.When.Format(time.RFC3339)
 }
