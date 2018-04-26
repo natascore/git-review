@@ -51,6 +51,19 @@ func (r *fileChangeResolver) To() *string {
 	return &toContent
 }
 
+func getParentTree(commit *object.Commit, repo *git.Repository) (*object.Tree, error) {
+	from, err := commit.Parent(0)
+	if err != nil {
+		emptyTreeHash := plumbing.NewHash("4b825dc642cb6eb9a060e54bf8d69288fbee4904")
+		from, _ := repo.TreeObject(emptyTreeHash)
+		return from, nil
+	}
+	parentTree, err := from.Tree()
+
+	return parentTree, err
+
+}
+
 // GetChanges QueryResolver for GetChanges()
 func (r *Resolver) GetChanges(args struct{ Hash string }) *[]*fileChangeResolver {
 
@@ -62,12 +75,10 @@ func (r *Resolver) GetChanges(args struct{ Hash string }) *[]*fileChangeResolver
 	to, err := repo.CommitObject(hash)
 	helper.CheckIfError(err)
 
-	from, err := to.Parent(0)
+	toTree, err := to.Tree()
 	helper.CheckIfError(err)
 
-	fromTree, err := from.Tree()
-	helper.CheckIfError(err)
-	toTree, err := to.Tree()
+	fromTree, err := getParentTree(to, repo)
 	helper.CheckIfError(err)
 
 	changes, err := fromTree.Diff(toTree)
