@@ -6,8 +6,8 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
-// GetHistory QueryResolver for GetHistory()
-func (r *Resolver) GetHistory() *[]*CommitResolver {
+// History QueryResolver for git log
+func (r *Resolver) History() *[]*CommitResolver {
 
 	repo, err := git.PlainOpen("../")
 	helper.CheckIfError(err)
