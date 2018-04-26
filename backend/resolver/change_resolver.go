@@ -69,8 +69,21 @@ func getParentTree(commit *object.Commit, repo *git.Repository) (*object.Tree, e
 
 }
 
+func getRelativeTree(relative *string, to *object.Commit, repo *git.Repository) (*object.Tree, error) {
+	if relative == nil {
+		return getParentTree(to, repo)
+	}
+	relativeHash := plumbing.NewHash(*relative)
+	from, err := repo.CommitObject(relativeHash)
+	helper.CheckIfError(err)
+	return from.Tree()
+}
+
 // GetChanges QueryResolver for GetChanges()
-func (r *Resolver) GetChanges(args struct{ Hash string }) *[]*FileChangeResolver {
+func (r *Resolver) GetChanges(args struct {
+	Hash     string
+	Relative *string
+}) *[]*FileChangeResolver {
 
 	repo, err := git.PlainOpen("../")
 	helper.CheckIfError(err)
@@ -83,7 +96,7 @@ func (r *Resolver) GetChanges(args struct{ Hash string }) *[]*FileChangeResolver
 	toTree, err := to.Tree()
 	helper.CheckIfError(err)
 
-	fromTree, err := getParentTree(to, repo)
+	fromTree, err := getRelativeTree(args.Relative, to, repo)
 	helper.CheckIfError(err)
 
 	changes, err := fromTree.Diff(toTree)
