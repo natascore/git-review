@@ -3,6 +3,7 @@ package resolver
 import (
 	helper "github.com/natascore/git-review/backend/helper"
 	git "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
@@ -51,16 +52,14 @@ func (r *fileChangeResolver) To() *string {
 }
 
 // GetChanges QueryResolver for GetChanges()
-func (r *Resolver) GetChanges() *[]*fileChangeResolver {
+func (r *Resolver) GetChanges(args struct{ Hash string }) *[]*fileChangeResolver {
 
 	repo, err := git.PlainOpen("../")
 	helper.CheckIfError(err)
 
-	// ... retrieving the HEAD reference
-	ref, err := repo.Head()
-	helper.CheckIfError(err)
+	hash := plumbing.NewHash(args.Hash)
 
-	to, err := repo.CommitObject(ref.Hash())
+	to, err := repo.CommitObject(hash)
 	helper.CheckIfError(err)
 
 	from, err := to.Parent(0)
