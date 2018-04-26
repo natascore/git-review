@@ -5,7 +5,7 @@ schema {
 type Query {
   helloWorld(): String!
   getHistory(): [Commit]
-  getChanges(Hash: String!, Relative: String): [FileChange]
+  compare(From: String!, To: String!): [FileChange]
 }
 
 type FileChange {

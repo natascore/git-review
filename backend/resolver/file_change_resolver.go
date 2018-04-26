@@ -79,24 +79,13 @@ func getRelativeTree(relative *string, to *object.Commit, repo *git.Repository) 
 	return from.Tree()
 }
 
-// GetChanges QueryResolver for GetChanges()
-func (r *Resolver) GetChanges(args struct {
-	Hash     string
-	Relative *string
-}) *[]*FileChangeResolver {
-
-	repo, err := git.PlainOpen("../")
+// GetChangesForCommit retrieves the Changes for a Commit relative to an optional relative Hash and returns
+// a FileChangeResolver Array
+func GetChangesForCommit(repo *git.Repository, commit *object.Commit, relative *string) *[]*FileChangeResolver {
+	toTree, err := commit.Tree()
 	helper.CheckIfError(err)
 
-	hash := plumbing.NewHash(args.Hash)
-
-	to, err := repo.CommitObject(hash)
-	helper.CheckIfError(err)
-
-	toTree, err := to.Tree()
-	helper.CheckIfError(err)
-
-	fromTree, err := getRelativeTree(args.Relative, to, repo)
+	fromTree, err := getRelativeTree(relative, commit, repo)
 	helper.CheckIfError(err)
 
 	changes, err := fromTree.Diff(toTree)
@@ -106,7 +95,6 @@ func (r *Resolver) GetChanges(args struct {
 	for _, v := range changes {
 		l = append(l, &FileChangeResolver{v})
 	}
-
 	return &l
 
 }
