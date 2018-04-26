@@ -7,23 +7,27 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
-type fileChangeResolver struct {
+// FileChangeResolver resolves a FileChange
+type FileChangeResolver struct {
 	change *object.Change
 }
 
-func (r *fileChangeResolver) Diff() string {
+// Diff Returns the diff of a Change
+func (r *FileChangeResolver) Diff() string {
 	patch, err := r.change.Patch()
 	helper.CheckIfError(err)
 
 	return patch.String()
 }
 
-func (r *fileChangeResolver) Action() string {
+// Action resolves to an action of the change
+func (r *FileChangeResolver) Action() string {
 	return r.change.String()
 
 }
 
-func (r *fileChangeResolver) From() *string {
+// From resolves to the Content before the change
+func (r *FileChangeResolver) From() *string {
 	from, _, err := r.change.Files()
 	helper.CheckIfError(err)
 
@@ -37,7 +41,8 @@ func (r *fileChangeResolver) From() *string {
 	return &fromContent
 }
 
-func (r *fileChangeResolver) To() *string {
+// To resolves to the Content after the change
+func (r *FileChangeResolver) To() *string {
 	_, to, err := r.change.Files()
 	helper.CheckIfError(err)
 
@@ -65,7 +70,7 @@ func getParentTree(commit *object.Commit, repo *git.Repository) (*object.Tree, e
 }
 
 // GetChanges QueryResolver for GetChanges()
-func (r *Resolver) GetChanges(args struct{ Hash string }) *[]*fileChangeResolver {
+func (r *Resolver) GetChanges(args struct{ Hash string }) *[]*FileChangeResolver {
 
 	repo, err := git.PlainOpen("../")
 	helper.CheckIfError(err)
@@ -84,9 +89,9 @@ func (r *Resolver) GetChanges(args struct{ Hash string }) *[]*fileChangeResolver
 	changes, err := fromTree.Diff(toTree)
 	helper.CheckIfError(err)
 
-	var l []*fileChangeResolver
+	var l []*FileChangeResolver
 	for _, v := range changes {
-		l = append(l, &fileChangeResolver{v})
+		l = append(l, &FileChangeResolver{v})
 	}
 
 	return &l
