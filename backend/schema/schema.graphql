@@ -5,6 +5,14 @@ schema {
 type Query {
   helloWorld(): String!
   getHistory(): [Commit]
+  getChanges(): [FileChange]
+}
+
+type FileChange {
+  action: String!
+  from: String!
+  to: String!
+  diff: String!
 }
 
 type Commit {
