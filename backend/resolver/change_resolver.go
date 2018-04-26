@@ -22,24 +22,32 @@ func (r *fileChangeResolver) Action() string {
 
 }
 
-func (r *fileChangeResolver) From() string {
+func (r *fileChangeResolver) From() *string {
 	from, _, err := r.change.Files()
 	helper.CheckIfError(err)
+
+	if from == nil {
+		return nil
+	}
 
 	fromContent, err := from.Contents()
 	helper.CheckIfError(err)
 
-	return fromContent
+	return &fromContent
 }
 
-func (r *fileChangeResolver) To() string {
+func (r *fileChangeResolver) To() *string {
 	_, to, err := r.change.Files()
 	helper.CheckIfError(err)
+
+	if to == nil {
+		return nil
+	}
 
 	toContent, err := to.Contents()
 	helper.CheckIfError(err)
 
-	return toContent
+	return &toContent
 }
 
 // GetChanges QueryResolver for GetChanges()

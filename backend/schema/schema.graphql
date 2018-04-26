@@ -10,8 +10,8 @@ type Query {
 
 type FileChange {
   action: String!
-  from: String!
-  to: String!
+  from: String
+  to: String
   diff: String!
 }
 
