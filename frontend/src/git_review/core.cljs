@@ -1,6 +1,6 @@
 (ns git-review.core
   (:require [clojure.string :as string]
-            [git-review.state :refer [commit-history current-commit load-diff-from-api load-history-from-api]]
+            [git-review.state :refer [commit-history current-commit load-diff-from-api load-history-from-api load-more-history-from-api]]
             [git-review.crypt :as crypt]
             [cljs-http.client :as http]
             [goog.dom :as dom]
@@ -43,7 +43,14 @@
    (let [history (rum/react (commit-history))]
      (if (empty? history)
        [:p "history is empty"]
-       [:ul (mapv commit-entry history)]))])
+       [:.commit-list-entries
+        [:ul (mapv commit-entry history)]
+        [:.show-more {:on-click (fn [_] (load-more-history-from-api ((last history):hash)))} "show more"]
+       ]
+     )
+   )
+  ]
+ )
 
 
 (rum/defc change-diff < {:key-fn (fn [change] (:action change))}
@@ -51,7 +58,7 @@
   [:.change {:dangerouslySetInnerHTML
          {:__html (.getPrettyHtml js/Diff2Html
                                   (:diff change)
-                                  (clj->js {:outputFormat "line-by-line"}))}}])
+                                  (clj->js {:outputFormat "side-by-side"}))}}])
 
 (rum/defc commit-diff <
   rum/reactive

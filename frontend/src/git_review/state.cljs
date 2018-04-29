@@ -30,6 +30,16 @@
           history (get-in body [:data :history])]
       (swap! state assoc :history (summarize-history history)))))
 
+(defn append-history-state [c state]
+  (go
+    (let [{:keys [status body]} (async/<! c)
+          history (get-in body [:data :history])
+          history (summarize-history history)
+          oldHistory (get-in @state [:history])
+          combinedHistory (concat oldHistory history)
+          ]
+      (swap! state assoc :history combinedHistory))))
+
 (defn update-diff-state [c state]
   (go
     (let [{:keys [status body]} (async/<! c)
@@ -37,8 +47,8 @@
       (swap! state assoc :commit commit))))
 
 (def history-query
-  (str "query {"
-       "history(first: 10){"
+  (str "query History($hash: String){"
+       "history(first: 10, after: $hash){"
        "date "
        "hash "
        "message "
@@ -51,6 +61,13 @@
             {:with-credentials? false
              :json-params {:query history-query}})
       (update-history-state app-state)))
+
+(defn load-more-history-from-api [hash]
+  (-> (http/post "http://localhost:8080/graphql"
+            {:with-credentials? false
+             :json-params {:query history-query
+                           :variables {:hash hash}}})
+      (append-history-state app-state)))
 
 (def diff-query
   (str "query CommitWithDiff($hash: String!){"
