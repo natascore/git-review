@@ -1,15 +1,12 @@
 (ns git-review.core
-  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [clojure.string :as string]
+            [git-review.state :refer [commit-history current-commit load-diff-from-api load-history-from-api]]
             [git-review.crypt :as crypt]
             [cljs-http.client :as http]
-            [cljs.core.async :as async]
             [goog.dom :as dom]
             [rum.core :as rum]))
 
 (enable-console-print!)
-
-(defonce app-state (atom {:history []}))
 
 (defn format-date [isodate]
   (-> isodate
@@ -31,57 +28,45 @@
 
 (rum/defc commit-entry [entry]
   (let [{:keys [hash author message date]} entry]
-    [:li
+    [:li {:on-click (fn [_] (load-diff-from-api hash))}
      (avatar author)
      [:.commit-details
       [:.commit-msg message]
       [:.commit-hash hash]
       [:.commit-date (format-date date)]]]))
 
-
-(defn summarize-commit [commit]
-  (let [{:keys [message]} commit]
-    (assoc commit :message (first (string/split message #"\n")))))
-
-(defn summarize-history [history]
-  (map summarize-commit history))
-
-(defn update-state [c state]
-  (go
-    (let [{:keys [status body]} (async/<! c)
-          history (get-in body [:data :history])]
-      (reset! state {:history (summarize-history history)}))))
-
-(def api-query
-  (str "query {"
-  "history(first: 10){"
-  "date "
-  "hash "
-  "message "
-  "author { name email }"
-  "}"
-  "}"))
-
-(defn load-from-api []
-  (-> (http/post "http://localhost:8080/graphql"
-            {:with-credentials? false
-             :json-params {:query api-query}})
-      (update-state app-state)))
-
 (rum/defc commit-list <
   rum/reactive
-  {:will-mount (fn [state] (load-from-api) state)}
+  {:will-mount (fn [state] (load-history-from-api) state)}
   []
   [:.commit-list
-   (let [history (:history (rum/react app-state))]
+   (let [history (rum/react (commit-history))]
      (if (empty? history)
        [:p "history is empty"]
        [:ul (mapv commit-entry history)]))])
 
+
+(rum/defc change-diff < {:key-fn (fn [change] (:action change))}
+  [change]
+  [:.change {:dangerouslySetInnerHTML
+         {:__html (.getPrettyHtml js/Diff2Html
+                                  (:diff change)
+                                  (clj->js {:outputFormat "line-by-line"}))}}])
+
+(rum/defc commit-diff <
+  rum/reactive
+  []
+  (let [commit (rum/react (current-commit))]
+    [:.diffs
+     (when commit
+       (map change-diff (:changes commit)))]))
+
 (rum/defc app []
   [:div.layout
    [:header "git-review"]
-   [:main (commit-list)]
+   [:main
+    (commit-list)
+    (commit-diff)]
    [:footer "visit us on " [:a {:href "https://github.com/natascore/git-review"} "GitHub"]]])
 
 
