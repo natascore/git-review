@@ -6,7 +6,7 @@
   display: flex;
   flex-direction: column;
   margin: 1em auto;
-  max-width: 780px;
+  max-width: 1270px;
 }
 
 header {
@@ -17,7 +17,8 @@ header {
 }
 
 main {
-
+  display: flex;
+  justify-content: space-between;
 }
 
 footer {
@@ -25,6 +26,11 @@ footer {
   font-size: 0.8em;
 }
 
+.commit-list {
+  font-size: 0.9em;
+  margin-right: 1em;
+  width: 40%;
+}
 .commit-list ul {
   list-style: none;
 }
@@ -50,11 +56,12 @@ footer {
 
 .commit-details {
   margin-left: 3.0em;
+  display: flex;
+  flex-direction: column;
 }
 .commit-hash {
   font-size: 0.6em;
   margin-top: 0.3em;
-  margin-right: 2em;
   float: left;
 }
 .commit-date {
@@ -62,4 +69,10 @@ footer {
 }
 .commit-msg {
   margin-bottom: 0.1em;
+}
+
+.diffs {
+  flex: 1;
+  flex-direction: column;
+  width: 60%;
 }
