@@ -33,6 +33,7 @@
                            :output-to "resources/public/js/compiled/git_review.js"
                            :output-dir "resources/public/js/compiled/out"
                            :source-map-timestamp true
+                           :externs ["resources/lib/diff2html.min.js"]
                            ;; To console.log CLJS data-structures make sure you enable devtools in Chrome
                            ;; https://github.com/binaryage/cljs-devtools
                            :preloads [devtools.preload]}}
@@ -43,6 +44,7 @@
                 :source-paths ["src"]
                 :compiler {:output-to "resources/public/js/compiled/git_review.js"
                            :main git-review.core
+                           :externs ["resources/lib/diff2html.min.js"]
                            :optimizations :advanced
                            :pretty-print false}}]}
 
