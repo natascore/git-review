@@ -14,7 +14,7 @@
 (defn format-date [isodate]
   (-> isodate
     (string/replace "T" " ")
-    (string/replace #":[0-9]{2}Z$" "")))
+    (string/replace #":[0-9]{2}(Z|\+.*)$" "")))
 
 (defn gravatar-url [email]
   (str
