@@ -12,17 +12,30 @@
              (process-events
                c
                app-state
-               (fn [state]
+               (fn [state event]
                  (is (= {:a 1} state)))
                (fn [_] (done)))
              (put! c [])))))
+
+(deftest process-events-calls-handler-with-event-test
+  (testing "process-events calls event-handler with event"
+    (async done
+           (let [c (chan)
+                 app-state (atom {:a 1})]
+             (process-events
+               c
+               app-state
+               (fn [state event]
+                 (is (= :event event)))
+               (fn [_] (done)))
+             (put! c :event)))))
 
 (deftest process-events-replaces-state-with-handler-return-value-test
   (testing "process-events replaces state with value returned by event handler"
     (async done
            (let [c (chan)
                  app-state (atom {})
-                 handle-event (fn [_] [:a])]
+                 handle-event (fn [state event] [:a])]
              (process-events
                c
                app-state
@@ -40,7 +53,7 @@
              (process-events
                c
                app-state
-               (fn [event]
+               (fn [state event]
                  (is (= :event-value)))
                (fn [_]
                  (done)))
@@ -51,7 +64,7 @@
     (async done
            (let [c (chan)
                  app-state (atom {})
-                 event-handler (fn [_] {:new-state 42})]
+                 event-handler (fn [state event] {:new-state 42})]
              (process-events
                c
                app-state
@@ -60,4 +73,3 @@
                  (is (= {{:new-state 42} state}))
                  (done)))
              (put! c [])))))
-
