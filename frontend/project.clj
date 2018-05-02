@@ -2,51 +2,56 @@
   :description "reviews with git made easy"
   :min-lein-version "2.7.1"
 
-  :dependencies [[org.clojure/clojure "1.9.0"]
+  :dependencies [[cljs-http "0.1.45"]
+                 [devcards "0.2.4"]
+                 [lein-doo "0.1.10"]
+                 [org.clojure/clojure "1.9.0"]
                  [org.clojure/clojurescript "1.9.946"]
                  [org.clojure/core.async  "0.4.474"]
                  [rum "0.11.2"]
-                 [cljs-http "0.1.45"]
                  [vincit/venia "0.2.5"]]
 
   :plugins [[lein-figwheel "0.5.15"]
+            [lein-doo "0.1.10"]
             [lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]]
 
   :source-paths ["src"]
 
-  :cljsbuild {:builds
+  :cljsbuild {:test-commands {"test" ["lein" "doo" "phantom" "test" "once"]}
+              :builds
               [{:id "dev"
                 :source-paths ["src"]
-
-                ;; The presence of a :figwheel configuration here
-                ;; will cause figwheel to inject the figwheel client
-                ;; into your build
                 :figwheel {:on-jsload "git-review.core/on-js-reload"
-                           ;; :open-urls will pop open your application
-                           ;; in the default browser once Figwheel has
-                           ;; started and compiled your application.
-                           ;; Comment this out once it no longer serves you.
                            :open-urls ["http://localhost:3449/index.html"]}
-
                 :compiler {:main git-review.core
                            :asset-path "js/compiled/out"
                            :output-to "resources/public/js/compiled/git_review.js"
                            :output-dir "resources/public/js/compiled/out"
                            :source-map-timestamp true
                            :externs ["resources/lib/diff2html.min.js"]
-                           ;; To console.log CLJS data-structures make sure you enable devtools in Chrome
-                           ;; https://github.com/binaryage/cljs-devtools
                            :preloads [devtools.preload]}}
-               ;; This next build is a compressed minified build for
-               ;; production. You can build this with:
-               ;; lein cljsbuild once min
                {:id "min"
                 :source-paths ["src"]
-                :compiler {:output-to "resources/public/js/compiled/git_review.js"
-                           :main git-review.core
+                :compiler {:main git-review.core
                            :externs ["resources/lib/diff2html.min.js"]
                            :optimizations :advanced
-                           :pretty-print false}}]}
+                           :output-to "resources/public/js/compiled/git_review.min.js"
+                           :pretty-print false}}
+               {:id "devcards-test"
+                :source-paths ["src" "test"]
+                :figwheel {:devcards true}
+                :compiler {:main runners.browser
+                           :optimizations :none
+                           :asset-path "js/compiled/tests/out"
+                           :output-dir "resources/public/js/compiled/tests/out"
+                           :output-to "resources/public/js/compiled/tests/all-tests.js"
+                           :source-map-timestamp true}}
+               {:id "test"
+                :source-paths ["src" "test"]
+                :compiler {:main runners.doo
+                           :optimizations :none
+                           :output-to "resources/public/js/compiled/tests/all-tests.js"}}
+               ]}
 
   :figwheel {;; :http-server-root "public" ;; default and assumes "resources"
              ;; :server-port 3449 ;; default
