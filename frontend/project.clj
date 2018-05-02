@@ -19,40 +19,39 @@
 
   :cljsbuild {:test-commands {"test" ["lein" "doo" "phantom" "test" "once"]}
               :builds
-              [{:id "dev"
-                :source-paths ["src"]
+              {:dev 
+               {:source-paths ["src"]
                 :figwheel {:on-jsload "git-review.core/on-js-reload"
                            :open-urls ["http://localhost:3449/index.html"]}
                 :compiler {:main git-review.core
+                           :externs ["resources/lib/diff2html.min.js"]
                            :asset-path "js/compiled/out"
                            :output-to "resources/public/js/compiled/git_review.js"
                            :output-dir "resources/public/js/compiled/out"
                            :source-map-timestamp true
-                           :externs ["resources/lib/diff2html.min.js"]
                            :preloads [devtools.preload]}}
-               {:id "min"
-                :source-paths ["src"]
+               :min
+               {:source-paths ["src"]
                 :compiler {:main git-review.core
                            :externs ["resources/lib/diff2html.min.js"]
                            :optimizations :advanced
                            :output-to "resources/public/js/compiled/git_review.min.js"
                            :pretty-print false}}
-               {:id "devcards-test"
-                :source-paths ["src" "test"]
+               :devcards-test 
+               {:source-paths ["src" "test"]
                 :figwheel {:devcards true}
                 :compiler {:main runners.browser
                            :optimizations :none
-                           :asset-path "js/compiled/tests/out"
-                           :output-dir "resources/public/js/compiled/tests/out"
-                           :output-to "resources/public/js/compiled/tests/all-tests.js"
+                           :asset-path "js/compiled/devcards/out"
+                           :output-dir "resources/public/js/compiled/devcards/out"
+                           :output-to "resources/public/js/compiled/devcards/tests.js"
                            :source-map-timestamp true}}
-               {:id "test"
-                :source-paths ["src" "test"]
+               :test
+               {:source-paths ["src" "test"]
                 :compiler {:main runners.doo
                            :optimizations :none
-                           :output-to "resources/public/js/compiled/tests/all-tests.js"}}
-               ]}
-
+                           :output-dir "resources/private/js/out"
+                           :output-to "resources/private/js/tests.js"}}}}
   :figwheel {;; :http-server-root "public" ;; default and assumes "resources"
              ;; :server-port 3449 ;; default
              ;; :server-ip "127.0.0.1"
