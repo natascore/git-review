@@ -16,6 +16,12 @@
 (defn current-commit []
   commit-cursor)
 
+(defmulti handle-event (fn [state event] (first event)))
+
+(defmethod handle-event :default [state event]
+  (println "No handler defined for event:" event)
+  state)
+
 (defn process-events [c app-state handle-event handle-event-post]
   (go (while true
         (let [event (<! c)]
