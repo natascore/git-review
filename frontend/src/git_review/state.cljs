@@ -16,6 +16,12 @@
 (defn current-commit []
   commit-cursor)
 
+(defn process-events [c app-state handle-event handle-event-post]
+  (go (while true
+        (let [event (<! c)]
+          (swap! app-state handle-event event)
+          (when handle-event-post (handle-event-post @app-state))))))
+
 
 (defn summarize-commit [commit]
   (let [{:keys [message]} commit]
