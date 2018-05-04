@@ -88,18 +88,19 @@
        "}"
        "}"))
 
+(defn response->history [response]
+  (get-in response [:body :data :history]))
+
 (defn load-initial-history [c]
   (graphql-query c history-query {:pre-event :initial-history-pending
                                   :post-event :initial-history-ready
-                                  :post (fn [response]
-                                          (get-in response [:body :data :history]))}))
+                                  :post response->history}))
 
 (defn load-more-history [c hash]
   (graphql-query c history-query {:variables {:hash hash}
                                   :pre-event :more-history-pending
                                   :post-event :more-history-ready
-                                  :post (fn [response]
-                                          (get-in response [:body :data :history]))}))
+                                  :post response->history}))
 
 (def diff-query
   (str "query CommitWithDiff($hash: String!){"
