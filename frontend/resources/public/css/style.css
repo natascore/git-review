@@ -10,10 +10,16 @@
 }
 
 header {
-  text-align: right;
+  display: flex;
+  justify-content: flex-end;
   font-family: monospace;
   font-size: 1.2em;
   padding-bottom: 1em;
+}
+
+.spinner {
+  margin-right: 0.5em;
+  font-size: 0.9em;
 }
 
 main {

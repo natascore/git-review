@@ -14,6 +14,7 @@
 (def event-bus (chan))
 (def git-history (state/history-cursor app-state))
 (def current-commit (state/commit-cursor app-state))
+(def pending? (state/pending-cursor app-state))
 
 (defn load-initial-history []
   (state/load-initial-history event-bus))
@@ -90,10 +91,17 @@
      (when commit
        (map change-diff (:changes commit)))]))
 
+(rum/defc spinner <
+  rum/reactive
+  []
+  (when (rum/react pending?)
+    [:.spinner
+     [:i.fa.fa-spinner.fa-spin]]))
+
 
 (rum/defc app []
   [:div.layout
-   [:header "git-review"]
+   [:header (spinner) "git-review"]
    [:main
     (commit-list)
     (commit-diff)]

@@ -11,12 +11,29 @@
 (defn commit-cursor [app-state]
   (rum/cursor-in app-state [:commit]))
 
+(defn pending-cursor [app-state]
+  (rum/cursor-in app-state [:pending]))
 
 (defmulti handle-event (fn [state event] (first event)))
 
 (defmethod handle-event :default [state event]
   (println "No handler defined for event:" event)
   state)
+
+(defn set-pending [state]
+  (assoc state :pending true))
+
+(defn clear-pending [state]
+  (dissoc state :pending))
+
+(defmethod handle-event :initial-history-pending [state _]
+  (set-pending state))
+
+(defmethod handle-event :more-history-pending [state _]
+  (set-pending state))
+
+(defmethod handle-event :commit-details-pending [state _]
+  (set-pending state))
 
 (defn summarize-commit [commit]
   (let [{:keys [message]} commit]
@@ -26,15 +43,21 @@
   (mapv summarize-commit history))
 
 (defmethod handle-event :initial-history-ready [state [_ initial-history]]
-  (assoc state :history (summarize-history initial-history)))
+  (-> state
+    (assoc :history (summarize-history initial-history))
+    (clear-pending)))
 
 (defmethod handle-event :more-history-ready [state [_ more-history]]
   (let [current-history (:history state)]
-    (assoc state :history (apply conj current-history
-                                 (summarize-history more-history)))))
+    (-> state
+        (assoc :history (apply conj current-history
+                               (summarize-history more-history)))
+        (clear-pending))))
 
 (defmethod handle-event :commit-details-ready [state [_ commit-details]]
-  (assoc state :commit commit-details))
+  (-> state
+      (assoc :commit commit-details)
+      (clear-pending)))
 
 (defn process-events [c app-state handle-event handle-event-post]
   (go (while true
