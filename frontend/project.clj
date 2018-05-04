@@ -3,13 +3,13 @@
   :min-lein-version "2.7.1"
 
   :dependencies [[cljs-http "0.1.45"]
+                 [cljsjs/showdown "1.4.2-0"]
                  [devcards "0.2.4"]
                  [lein-doo "0.1.10"]
                  [org.clojure/clojure "1.9.0"]
                  [org.clojure/clojurescript "1.9.946"]
                  [org.clojure/core.async  "0.4.474"]
-                 [rum "0.11.2"]
-                 [vincit/venia "0.2.5"]]
+                 [rum "0.11.2"]]
 
   :plugins [[lein-figwheel "0.5.15"]
             [lein-doo "0.1.10"]
@@ -19,7 +19,7 @@
 
   :cljsbuild {:test-commands {"test" ["lein" "doo" "phantom" "test" "once"]}
               :builds
-              {:dev 
+              {:dev
                {:source-paths ["src"]
                 :figwheel {:on-jsload "git-review.core/on-js-reload"
                            :open-urls ["http://localhost:3449/index.html"]}
@@ -37,7 +37,7 @@
                            :optimizations :advanced
                            :output-to "resources/public/js/compiled/git_review.min.js"
                            :pretty-print false}}
-               :devcards-test 
+               :devcards-test
                {:source-paths ["src" "test"]
                 :figwheel {:devcards true}
                 :compiler {:main runners.browser
