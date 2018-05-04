@@ -22,19 +22,30 @@
   (println "No handler defined for event:" event)
   state)
 
+(defn summarize-commit [commit]
+  (let [{:keys [message]} commit]
+    (assoc commit :message (first (string/split message #"\n")))))
+
+(defn summarize-history [history]
+  (mapv summarize-commit history))
+
+(defmethod handle-event :initial-history-ready [state [_ initial-history]]
+  (assoc state :history (summarize-history initial-history)))
+
+(defmethod handle-event :more-history-ready [state [_ more-history]]
+  (let [current-history (:history state)]
+    (assoc state :history (apply conj current-history
+                                 (summarize-history more-history)))))
+
+(defmethod handle-event :commit-details-ready [state [_ commit-details]]
+  (assoc state :commit commit-details))
+
 (defn process-events [c app-state handle-event handle-event-post]
   (go (while true
         (let [event (<! c)]
           (swap! app-state handle-event event)
           (when handle-event-post (handle-event-post @app-state))))))
 
-
-(defn summarize-commit [commit]
-  (let [{:keys [message]} commit]
-    (assoc commit :message (first (string/split message #"\n")))))
-
-(defn summarize-history [history]
-  (map summarize-commit history))
 
 (defn update-history-state [c state]
   (go
