@@ -66,6 +66,18 @@
           (when handle-event-post (handle-event-post @app-state))))))
 
 
+(defn graphql-query [c query opts]
+  (let [{:keys [variables pre-event post-event post]} opts]
+    (when pre-event (async/put! c [pre-event]))
+    (async/take! (http/post "http://localhost:8080/graphql"
+                          {:with-credentials? false
+                           :json-params {:query query
+                                         :variables variables}})
+               (fn [response]
+                 (when post-event
+                 (async/put! c (if post [post-event (post response)]
+                                 [post-event])))))))
+
 (def history-query
   (str "query History($hash: String){"
        "history(first: 10, after: $hash){"
@@ -77,23 +89,17 @@
        "}"))
 
 (defn load-initial-history [c]
-  (async/put! c [:initial-history-pending])
-  (async/take! (http/post "http://localhost:8080/graphql"
-                          {:with-credentials? false
-                           :json-params {:query history-query}})
-               (fn [response]
-                 (async/put! c [:initial-history-ready
-                                (get-in response [:body :data :history])]))))
+  (graphql-query c history-query {:pre-event :initial-history-pending
+                                  :post-event :initial-history-ready
+                                  :post (fn [response]
+                                          (get-in response [:body :data :history]))}))
 
 (defn load-more-history [c hash]
-  (async/put! c [:more-history-pending])
-  (async/take! (http/post "http://localhost:8080/graphql"
-                          {:with-credentials? false
-                           :json-params {:query history-query
-                                         :variables {:hash hash}}})
-               (fn [response]
-                 (async/put! c [:more-history-ready
-                                (get-in response [:body :data :history])]))))
+  (graphql-query c history-query {:variables {:hash hash}
+                                  :pre-event :more-history-pending
+                                  :post-event :more-history-ready
+                                  :post (fn [response]
+                                          (get-in response [:body :data :history]))}))
 
 (def diff-query
   (str "query CommitWithDiff($hash: String!){"
@@ -107,12 +113,9 @@
        "}"))
 
 (defn load-commit-details [c hash]
-  (async/put! c [:commit-details-pending])
-  (async/take! (http/post "http://localhost:8080/graphql"
-                          {:with-credentials? false
-                           :json-params {:query diff-query
-                                         :variables {:hash hash}}})
-               (fn [response]
-                 (async/put! c [:commit-details-ready
-                                (get-in response [:body :data :commit])]))))
+  (graphql-query c diff-query {:variables {:hash hash}
+                               :pre-event :commit-details-pending
+                               :post-event :commit-details-ready
+                               :post (fn [response]
+                                       (get-in response [:body :data :commit]))}))
 
