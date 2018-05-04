@@ -1,12 +1,36 @@
 (ns git-review.core
-  (:require [clojure.string :as string]
-            [git-review.state :refer [commit-history current-commit load-diff-from-api load-history-from-api load-more-history-from-api]]
+  (:require [cljs.core.async :refer [chan]]
+            [clojure.string :as string]
             [git-review.crypt :as crypt]
-            [cljs-http.client :as http]
+            [git-review.state :as state]
             [goog.dom :as dom]
             [rum.core :as rum]))
 
 (enable-console-print!)
+
+;; create state plumbing
+
+(defonce app-state (atom {}))
+(def event-bus (chan))
+(def git-history (state/history-cursor app-state))
+(def current-commit (state/commit-cursor app-state))
+
+(defn load-initial-history []
+  (state/load-initial-history event-bus))
+
+(defn load-more-history [hash]
+  (state/load-more-history event-bus hash))
+
+(defn load-commit-details [hash]
+  (state/load-commit-details event-bus hash))
+
+(state/process-events
+  event-bus
+  app-state
+  state/handle-event
+  nil)
+
+;; UI related stuff from here on out
 
 (defn format-date [isodate]
   (-> isodate
@@ -28,7 +52,7 @@
 
 (rum/defc commit-entry [entry]
   (let [{:keys [hash author message date]} entry]
-    [:li {:on-click (fn [_] (load-diff-from-api hash))}
+    [:li {:on-click (fn [_] (load-commit-details hash))}
      (avatar author)
      [:.commit-details
       [:.commit-msg message]
@@ -37,20 +61,18 @@
 
 (rum/defc commit-list <
   rum/reactive
-  {:will-mount (fn [state] (load-history-from-api) state)}
+  {:will-mount (fn [state] (load-initial-history) state)}
   []
   [:.commit-list
-   (let [history (rum/react (commit-history))]
+   (let [history (rum/react git-history)
+         last-commit (:hash (last history))]
      (if (empty? history)
        [:p "history is empty"]
        [:.commit-list-entries
         [:ul (mapv commit-entry history)]
-        [:.show-more {:on-click (fn [_] (load-more-history-from-api ((last history):hash)))} "show more"]
-       ]
-     )
-   )
-  ]
- )
+        [:.show-more
+         {:on-click (fn [_] (load-more-history last-commit))}
+         "show more"]]))])
 
 
 (rum/defc change-diff < {:key-fn (fn [change] (:action change))}
@@ -63,10 +85,11 @@
 (rum/defc commit-diff <
   rum/reactive
   []
-  (let [commit (rum/react (current-commit))]
+  (let [commit (rum/react current-commit)]
     [:.diffs
      (when commit
        (map change-diff (:changes commit)))]))
+
 
 (rum/defc app []
   [:div.layout
@@ -76,11 +99,9 @@
     (commit-diff)]
    [:footer "visit us on " [:a {:href "https://github.com/natascore/git-review"} "GitHub"]]])
 
-
 (rum/mount
   (app)
   (dom/getElement "app"))
-
 
 (defn on-js-reload []
   ;; (swap! app-state update-in [:__figwheel_counter] inc)

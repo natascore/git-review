@@ -1,20 +1,16 @@
 (ns git-review.state
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [clojure.string :as string]
-            [cljs-http.client :as http]
+  (:require [cljs-http.client :as http]
             [cljs.core.async :as async]
+            [clojure.string :as string]
             [rum.core :as rum]))
 
-(defonce app-state (atom {:history []
-                          :commit nil}))
-(def history-cursor (rum/cursor-in app-state [:history]))
-(def commit-cursor (rum/cursor-in app-state [:commit]))
+(defn history-cursor [app-state]
+  (rum/cursor-in app-state [:history]))
 
-(defn commit-history []
-  history-cursor)
+(defn commit-cursor [app-state]
+  (rum/cursor-in app-state [:commit]))
 
-(defn current-commit []
-  commit-cursor)
 
 (defmulti handle-event (fn [state event] (first event)))
 
@@ -47,28 +43,6 @@
           (when handle-event-post (handle-event-post @app-state))))))
 
 
-(defn update-history-state [c state]
-  (go
-    (let [{:keys [status body]} (async/<! c)
-          history (get-in body [:data :history])]
-      (swap! state assoc :history (summarize-history history)))))
-
-(defn append-history-state [c state]
-  (go
-    (let [{:keys [status body]} (async/<! c)
-          history (get-in body [:data :history])
-          history (summarize-history history)
-          oldHistory (get-in @state [:history])
-          combinedHistory (concat oldHistory history)
-          ]
-      (swap! state assoc :history combinedHistory))))
-
-(defn update-diff-state [c state]
-  (go
-    (let [{:keys [status body]} (async/<! c)
-          commit (get-in body [:data :commit])]
-      (swap! state assoc :commit commit))))
-
 (def history-query
   (str "query History($hash: String){"
        "history(first: 10, after: $hash){"
@@ -79,18 +53,24 @@
        "}"
        "}"))
 
-(defn load-history-from-api []
-  (-> (http/post "http://localhost:8080/graphql"
-            {:with-credentials? false
-             :json-params {:query history-query}})
-      (update-history-state app-state)))
+(defn load-initial-history [c]
+  (async/put! c [:initial-history-pending])
+  (async/take! (http/post "http://localhost:8080/graphql"
+                          {:with-credentials? false
+                           :json-params {:query history-query}})
+               (fn [response]
+                 (async/put! c [:initial-history-ready
+                                (get-in response [:body :data :history])]))))
 
-(defn load-more-history-from-api [hash]
-  (-> (http/post "http://localhost:8080/graphql"
-            {:with-credentials? false
-             :json-params {:query history-query
-                           :variables {:hash hash}}})
-      (append-history-state app-state)))
+(defn load-more-history [c hash]
+  (async/put! c [:more-history-pending])
+  (async/take! (http/post "http://localhost:8080/graphql"
+                          {:with-credentials? false
+                           :json-params {:query history-query
+                                         :variables {:hash hash}}})
+               (fn [response]
+                 (async/put! c [:more-history-ready
+                                (get-in response [:body :data :history])]))))
 
 (def diff-query
   (str "query CommitWithDiff($hash: String!){"
@@ -103,9 +83,13 @@
        "}"
        "}"))
 
-(defn load-diff-from-api [hash]
-  (-> (http/post "http://localhost:8080/graphql"
-            {:with-credentials? false
-             :json-params {:query diff-query
-                           :variables {:hash hash}}})
-      (update-diff-state app-state)))
+(defn load-commit-details [c hash]
+  (async/put! c [:commit-details-pending])
+  (async/take! (http/post "http://localhost:8080/graphql"
+                          {:with-credentials? false
+                           :json-params {:query diff-query
+                                         :variables {:hash hash}}})
+               (fn [response]
+                 (async/put! c [:commit-details-ready
+                                (get-in response [:body :data :commit])]))))
+
