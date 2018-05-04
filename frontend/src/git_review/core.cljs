@@ -1,5 +1,6 @@
 (ns git-review.core
   (:require [cljs.core.async :refer [chan]]
+            [cljsjs.showdown]
             [clojure.string :as string]
             [git-review.crypt :as crypt]
             [git-review.state :as state]
@@ -79,17 +80,31 @@
 (rum/defc change-diff < {:key-fn (fn [change] (:action change))}
   [change]
   [:.change {:dangerouslySetInnerHTML
-         {:__html (.getPrettyHtml js/Diff2Html
-                                  (:diff change)
-                                  (clj->js {:outputFormat "side-by-side"}))}}])
+             {:__html (.getPrettyHtml js/Diff2Html
+                                      (:diff change)
+                                      (clj->js {:outputFormat "line-by-line"
+                                                :showFiles true}))}}])
+
+(rum/defc markdown-message
+  [message]
+  (let [converter (js/showdown.Converter.)
+        markdown (.makeHtml converter (str "## " message))]
+    [:.message {:dangerouslySetInnerHTML
+                {:__html markdown}}]))
 
 (rum/defc commit-diff <
   rum/reactive
   []
-  (let [commit (rum/react current-commit)]
+  (let [commit (rum/react current-commit)
+        {:keys [message author date hash changes]} commit]
     [:.diffs
+     [:div
+      (markdown-message message)
+      [:.author (avatar author) (:name author)]
+      [:.date (format-date date)]
+      [:.hash hash]]
      (when commit
-       (map change-diff (:changes commit)))]))
+       (map change-diff changes))]))
 
 (rum/defc spinner <
   rum/reactive
