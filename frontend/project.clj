@@ -5,17 +5,25 @@
   :dependencies [[cljs-http "0.1.45"]
                  [cljsjs/showdown "1.4.2-0"]
                  [devcards "0.2.4"]
+                 [garden "1.3.5"]
                  [lein-doo "0.1.10"]
                  [org.clojure/clojure "1.9.0"]
                  [org.clojure/clojurescript "1.9.946"]
                  [org.clojure/core.async  "0.4.474"]
                  [rum "0.11.2"]]
 
-  :plugins [[lein-figwheel "0.5.15"]
+  :plugins [[lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
             [lein-doo "0.1.10"]
-            [lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]]
+            [lein-figwheel "0.5.15"]
+            [lein-garden "0.3.0"]]
 
   :source-paths ["src"]
+
+  :garden {:builds [{:id "main"
+                     :source-paths ["src/styles"]
+                     :stylesheet git-review.core/main
+                     :compiler {:output-to "resources/public/css/main.css"
+                                :pretty-print? false}}]}
 
   :cljsbuild {:test-commands {"test" ["lein" "doo" "phantom" "test" "once"]}
               :builds
