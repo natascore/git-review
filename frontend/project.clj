@@ -25,6 +25,8 @@
                      :compiler {:output-to "resources/public/css/main.css"
                                 :pretty-print? false}}]}
 
+  :prep-tasks [["garden" "once"]]
+
   :cljsbuild {:test-commands {"test" ["lein" "doo" "phantom" "test" "once"]}
               :builds
               {:dev
@@ -113,4 +115,5 @@
                    :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    ;; need to add the compliled assets to the :clean-targets
                    :clean-targets ^{:protect false} ["resources/public/js/compiled"
-                                                     :target-path]}})
+                                                     :target-path
+                                                     "resources/public/css/main.css"]}})
