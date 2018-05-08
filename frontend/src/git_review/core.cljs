@@ -55,6 +55,9 @@
       (commit-details)))
   (dom/getElement "app"))
 
+(defn ^:export inspect-state []
+  (clj->js @app-state))
+
 (defn on-js-reload []
   ;; (swap! app-state update-in [:__figwheel_counter] inc)
   )
