@@ -4,12 +4,14 @@ import (
 	helper "github.com/natascore/git-review/backend/helper"
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	"regexp"
 )
 
 // History QueryResolver for git log
 func (r *Resolver) History(args struct {
 	First int32
 	After *string
+	Grep *string
 }) *[]*CommitResolver {
 
 	repo, err := git.PlainOpen("../")
@@ -45,6 +47,14 @@ func (r *Resolver) History(args struct {
 		c, err := cIter.Next()
 		if err != nil {
 			break
+		}
+		if args.Grep != nil {
+			message := c.Message
+			r, _ := regexp.Compile(*args.Grep)
+			if !r.MatchString(message) {
+				i--
+				continue
+			}
 		}
 		l = append(l, &CommitResolver{c, repo})
 	}
